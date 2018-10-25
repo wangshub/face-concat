@@ -51,6 +51,48 @@ def get_facial_landmark(image_array):
     return landmarks_list
 
 
+def cut_half_face(image_path, retain_side):
+    """
+    retain the desired side of image
+    :param image:
+    :param retain_side:
+    :return:
+    """
+    image = load_image(image_path)
+    landmark = get_facial_landmark(image)[0]
+    nose_bridge_midpoint = midpoint(landmark['nose_bridge'])
+    print(landmark.keys())
+    print('nose_bridge_midpoint =', nose_bridge_midpoint)
+    pil_image = Image.fromarray(image)
+    image_size = pil_image.size
+    print('image_size = ', image_size)
+
+    location_points = None
+    half_image = None
+
+    if retain_side == 'left':
+        location_points = midpoint()
+        pass
+    elif retain_side == 'right':
+        pass
+    elif retain_side == 'upside':
+        pass
+    elif retain_side == 'downside':
+        pass
+    else:
+        pass
+
+
+
+
+def concat_horizontal(image_left_path, image_right_path):
+    cut_half_face(image_left_path, 'left')
+
+
+def concat_vertical(images):
+    pass
+
+
 def test():
     image = load_image("face/trump-1.jpg")
 
@@ -85,6 +127,18 @@ def test():
     # cropped_img.show()
 
 
-if __name__ == '__main__':
+def main():
     args = get_parser()
     print(args)
+
+    if args['left'] and args['right']:
+        concat_horizontal(args['left'], args['right'])
+
+    if args['upside'] and args['downside']:
+        # TODO
+        pass
+
+
+
+if __name__ == '__main__':
+    main()
