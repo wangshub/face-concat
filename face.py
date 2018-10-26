@@ -1,4 +1,5 @@
 import argparse
+import math
 from PIL import Image, ImageDraw
 import face_recognition
 
@@ -29,6 +30,11 @@ def midpoint(coors):
         y += coor[1]
     x, y = int(x / len(coors)), int(y / len(coors))
     return x, y
+
+def distance(coor0, coor1):
+    d = (coor0[0] - coor1[0])**2 + (coor0[1] - coor1[1])**2
+    d = math.sqrt(d)
+    return d
 
 
 def load_image(image_file):
@@ -71,22 +77,37 @@ def cut_half_face(image_path, retain_side):
     half_image = None
 
     if retain_side == 'left':
-        location_points = midpoint()
-        pass
+        location_points = [(nose_bridge_midpoint[0], midpoint(landmark['left_eyebrow'])[1]),
+                           (nose_bridge_midpoint[0], midpoint(landmark['top_lip'])[1])]
+        d = ImageDraw.Draw(pil_image)
+        d.point(location_points, fill='yellow')
+        # pil_image.show()
+        crop_area = (0, 0) + (nose_bridge_midpoint[0], image_size[1])
+        half_image = pil_image.crop(crop_area)
+        # half_image.show()
     elif retain_side == 'right':
-        pass
+        location_points = [(0, midpoint(landmark['left_eyebrow'])[1]),
+                           (0, midpoint(landmark['top_lip'])[1])]
+        crop_area = (nose_bridge_midpoint[0], 0) + image_size
+        half_image = pil_image.crop(crop_area)
+        # half_image.show()
     elif retain_side == 'upside':
+        # TODO
         pass
     elif retain_side == 'downside':
+        # TODO
         pass
     else:
         pass
 
-
+    return half_image, location_points
 
 
 def concat_horizontal(image_left_path, image_right_path):
-    cut_half_face(image_left_path, 'left')
+    image_left, loc_left = cut_half_face(image_left_path, 'left')
+    image_right, loc_right = cut_half_face(image_right_path, 'right')
+    scale_ratio = distance(loc_left[0], loc_left[1]) / distance(loc_right[0], loc_right[1])
+    print(scale_ratio)
 
 
 def concat_vertical(images):
