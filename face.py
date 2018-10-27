@@ -106,8 +106,6 @@ def concat_horizontal(image_left_path, image_right_path, concat_path):
     image_right, loc_right = cut_half_face(image_right_path, 'right')
     scale_ratio = distance(loc_left[0], loc_left[1]) / distance(loc_right[0], loc_right[1])
 
-    print('scale_ratio = ', scale_ratio)
-
     if scale_ratio > 1:
         to_size = tuple([int(item / scale_ratio) for item in image_left.size])
         image_left = image_left.resize(to_size, Image.ANTIALIAS)
@@ -116,12 +114,6 @@ def concat_horizontal(image_left_path, image_right_path, concat_path):
         to_size = tuple([int(item * scale_ratio) for item in image_right.size])
         image_right = image_right.resize(to_size, Image.ANTIALIAS)
         loc_right = [(int(item[0] * scale_ratio), int(item[1] * scale_ratio)) for item in loc_right]
-    # image_left.show()
-    # image_right.show()
-    print('loc_left, loc_right = ', loc_left, '<--->', loc_right)
-    print('image_left.size, image_right.size = ', image_left.size, image_right.size)
-
-    print('-'*50)
 
     wl, hl = image_left.size
     wr, hr = image_right.size
@@ -131,22 +123,14 @@ def concat_horizontal(image_left_path, image_right_path, concat_path):
 
     delta = (hl - loc_left[1][1]) - (hr - loc_right[1][1])
     yl_1, yr_1 = (hl - delta, hr) if delta > 0 else (hl, hr + delta)
-
-    print('cut y label ')
-    print(yl_0, yr_0)
-    print(yl_1, yr_1)
-
     area_l = (0, yl_0, wl, yl_1)
     area_r = (0, yr_0, wr, yr_1)
     image_crop_l = image_left.crop(area_l)
     image_crop_r = image_right.crop(area_r)
 
-    # image_crop_l.show()
-    # image_crop_r.show()
     new_im = Image.new('RGB', (wl + wr, image_crop_l.size[1]))
     new_im.paste(image_crop_l, (0, 0))
     new_im.paste(image_crop_r, (wl, 0))
-
     # new_im.show()
     new_im.save(concat_path)
 
@@ -159,12 +143,11 @@ def main():
     args = get_parser()
     print(args)
 
-    if args['left'] and args['right']:
+    if args['left'] and args['right'] and args['output']:
         concat_horizontal(args['left'], args['right'], args['output'])
 
-    if args['upside'] and args['downside']:
-        # TODO
-        pass
+    if args['upside'] and args['downside'] and args['output']:
+        concat_vertical(args['upside'], args['downside'], args['output'])
 
 
 if __name__ == '__main__':
