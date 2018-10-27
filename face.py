@@ -2,7 +2,7 @@ import argparse
 import math
 from PIL import Image, ImageDraw
 import face_recognition
-
+from functools import reduce
 
 def get_parser():
     """
@@ -68,7 +68,7 @@ def cut_half_face(image_path, retain_side):
     image = load_image(image_path)
     landmark = get_facial_landmark(image)[0]
     nose_bridge_midpoint = midpoint(landmark['nose_bridge'])
-    # print(landmark.keys())
+    print(landmark.keys())
     print('nose_bridge_midpoint =', nose_bridge_midpoint, image_path)
     pil_image = Image.fromarray(image)
     image_size = pil_image.size
@@ -78,12 +78,12 @@ def cut_half_face(image_path, retain_side):
     half_image = None
 
     if retain_side == 'left':
-        location_points = [(nose_bridge_midpoint[0], midpoint(landmark['left_eyebrow'])[1]),
+        location_points = [(nose_bridge_midpoint[0], midpoint(landmark['left_eye'])[1]),
                            (nose_bridge_midpoint[0], midpoint(landmark['top_lip'])[1])]
         crop_area = (0, 0) + (nose_bridge_midpoint[0], image_size[1])
         half_image = pil_image.crop(crop_area)
     elif retain_side == 'right':
-        location_points = [(0, midpoint(landmark['left_eyebrow'])[1]),
+        location_points = [(0, midpoint(landmark['right_eye'])[1]),
                            (0, midpoint(landmark['top_lip'])[1])]
         crop_area = (nose_bridge_midpoint[0], 0) + image_size
         half_image = pil_image.crop(crop_area)
@@ -125,7 +125,7 @@ def concat_horizontal(image_left_path, image_right_path):
     wr, hr = image_right.size
 
     delta = loc_left[0][1] - loc_right[0][1]
-    yl_0, yr_0 = (delta, 0) if delta > 0 else (0, delta)
+    yl_0, yr_0 = (delta, 0) if delta > 0 else (0, -delta)
 
     delta = (hl - loc_left[1][1]) - (hr - loc_right[1][1])
     yl_1, yr_1 = (hl - delta, hr) if delta > 0 else (hl, hr + delta)
@@ -139,10 +139,16 @@ def concat_horizontal(image_left_path, image_right_path):
     image_crop_l = image_left.crop(area_l)
     image_crop_r = image_right.crop(area_r)
 
-    image_crop_l.show()
-    image_crop_r.show()
+    # image_crop_l.show()
+    # image_crop_r.show()
+    new_im = Image.new('RGB', (wl + wr, image_crop_l.size[1]))
+    new_im.paste(image_crop_l, (0, 0))
+    new_im.paste(image_crop_r, (wl, 0))
 
-    print(image_crop_l.size, '=====', image_crop_r.size)
+    new_im.show()
+
+
+
 
 
 
