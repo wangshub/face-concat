@@ -1,0 +1,6 @@
+Click==7.0
+dlib==19.16.99
+face-recognition==1.2.3
+face-recognition-models==0.3.0
+numpy==1.15.2
+Pillow==5.3.0

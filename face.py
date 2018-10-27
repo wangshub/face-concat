@@ -116,14 +116,12 @@ def cut_half_face(image_path, retain_side):
         crop_area = (nose_bridge_midpoint[0], 0) + image_size
         half_image = pil_image.crop(crop_area)
     elif retain_side == 'upside':
-        # TODO
         nose_tip = lowest_point(landmark['nose_tip'])
         loc_left, loc_right = intersection(nose_tip, landmark['chin'])
         location_points = [loc_left, loc_right]
         crop_area = (0, 0) + (image_size[0], nose_tip[1])
         half_image = pil_image.crop(crop_area)
     elif retain_side == 'downside':
-        # TODO
         nose_tip = lowest_point(landmark['nose_tip'])
         loc_left, loc_right = intersection(nose_tip, landmark['chin'])
         location_points = [(loc_left[0], 0), (loc_right[0], 0)]
