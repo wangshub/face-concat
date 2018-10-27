@@ -172,16 +172,6 @@ def concat_horizontal(image_left_path, image_right_path, concat_path):
 def concat_vertical(image_up_path, image_down_path, concat_path):
     image_up, loc_up = cut_half_face(image_up_path, 'upside')
     image_dw, loc_dw = cut_half_face(image_down_path, 'downside')
-
-    # draw_up = ImageDraw.Draw(image_up)
-    # draw_dw = ImageDraw.Draw(image_dw)
-    # draw_up.line(loc_up, width=5)
-    # draw_dw.line(loc_dw, width=5)
-    # image_up.show()
-    # image_dw.show()
-    #
-    # exit(0)
-
     scale_ratio = (loc_up[1][0] - loc_up[0][0]) / (loc_dw[1][0] - loc_dw[0][0])
     print('scale_ratio = ', scale_ratio)
     if scale_ratio > 1:
@@ -192,11 +182,28 @@ def concat_vertical(image_up_path, image_down_path, concat_path):
         to_size = tuple([int(item * scale_ratio) for item in image_dw.size])
         image_dw = image_dw.resize(to_size, Image.ANTIALIAS)
         loc_dw = [(int(item[0] * scale_ratio), int(item[1] / scale_ratio)) for item in loc_dw]
-
-    image_up.show()
-    image_dw.show()
-
+    # image_up.show()
+    # image_dw.show()
     print('loc_up, loc_dw = ', loc_up, loc_dw)
+    w_up, h_up = image_up.size
+    w_dw, h_dw = image_dw.size
+    delta = loc_up[0][0] - loc_dw[0][0]
+    x_up0, x_dw0 = (delta, 0) if delta > 0 else (0, -delta)
+
+    delta = (w_up - loc_up[1][0]) - (w_dw - loc_dw[1][0])
+    x_up1, x_dw1 = (w_up - delta, w_dw) if delta > 0 else (w_up, w_dw + delta)
+
+    area_up = (x_up0, 0, x_up1, h_up)
+    area_dw = (x_dw0, 0, x_dw1, h_dw)
+    image_crop_up = image_up.crop(area_up)
+    image_crop_dw = image_dw.crop(area_dw)
+    # image_crop_up.show()
+    # image_crop_dw.show()
+    new_im = Image.new('RGB', (image_crop_up.size[0], h_up + h_dw))
+    new_im.paste(image_crop_up, (0, 0))
+    new_im.paste(image_crop_dw, (0, h_up))
+    # new_im.show()
+    new_im.save(concat_path)
 
 
 def main():
