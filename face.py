@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw
 import face_recognition
 from functools import reduce
 
+
 def get_parser():
     """
     parse command line args
@@ -34,8 +35,32 @@ def midpoint(coors):
     return x, y
 
 
+def lowest_point(coors):
+    """
+    find the lowest coor in coors
+    :param coors:
+    :return:
+    """
+    lowest_coor = reduce(lambda x, y: x if x[1] > y[1] else y, coors)
+    return lowest_coor
+
+
+def intersection(start, coors):
+    """
+    get nose tip to chin intersection
+    :param start:
+    :param coors:
+    :return:
+    """
+    coors_l = [i for i in coors if i[0] < start[0]]
+    intersection_l = reduce(lambda a, b: a if abs(a[1] - start[1]) < abs(b[1] - start[1]) else b, coors_l)
+    coors_r = [i for i in coors if i[0] > start[0]]
+    intersection_r = reduce(lambda a, b: a if abs(a[1] - start[1]) < abs(b[1] - start[1]) else b, coors_r)
+    return intersection_l, intersection_r
+
+
 def distance(coor0, coor1):
-    d = (coor0[0] - coor1[0])**2 + (coor0[1] - coor1[1])**2
+    d = (coor0[0] - coor1[0]) ** 2 + (coor0[1] - coor1[1]) ** 2
     d = math.sqrt(d)
     return d
 
@@ -70,11 +95,12 @@ def cut_half_face(image_path, retain_side):
     image = load_image(image_path)
     landmark = get_facial_landmark(image)[0]
     nose_bridge_midpoint = midpoint(landmark['nose_bridge'])
-    print(landmark.keys())
+    # print(landmark.keys())
+    # print(landmark)
     print('nose_bridge_midpoint =', nose_bridge_midpoint, image_path)
     pil_image = Image.fromarray(image)
     image_size = pil_image.size
-    print('image_size = ', image_size, image_path)
+    print(image_path, 'image_size = ', image_size)
 
     location_points = None
     half_image = None
@@ -91,10 +117,18 @@ def cut_half_face(image_path, retain_side):
         half_image = pil_image.crop(crop_area)
     elif retain_side == 'upside':
         # TODO
-        pass
+        nose_tip = lowest_point(landmark['nose_tip'])
+        loc_left, loc_right = intersection(nose_tip, landmark['chin'])
+        location_points = [loc_left, loc_right]
+        crop_area = (0, 0) + (image_size[0], nose_tip[1])
+        half_image = pil_image.crop(crop_area)
     elif retain_side == 'downside':
         # TODO
-        pass
+        nose_tip = lowest_point(landmark['nose_tip'])
+        loc_left, loc_right = intersection(nose_tip, landmark['chin'])
+        location_points = [(loc_left[0], 0), (loc_right[0], 0)]
+        crop_area = (0, nose_tip[1]) + image_size
+        half_image = pil_image.crop(crop_area)
     else:
         pass
 
@@ -136,13 +170,37 @@ def concat_horizontal(image_left_path, image_right_path, concat_path):
 
 
 def concat_vertical(image_up_path, image_down_path, concat_path):
-    pass
+    image_up, loc_up = cut_half_face(image_up_path, 'upside')
+    image_dw, loc_dw = cut_half_face(image_down_path, 'downside')
+
+    # draw_up = ImageDraw.Draw(image_up)
+    # draw_dw = ImageDraw.Draw(image_dw)
+    # draw_up.line(loc_up, width=5)
+    # draw_dw.line(loc_dw, width=5)
+    # image_up.show()
+    # image_dw.show()
+    #
+    # exit(0)
+
+    scale_ratio = (loc_up[1][0] - loc_up[0][0]) / (loc_dw[1][0] - loc_dw[0][0])
+    print('scale_ratio = ', scale_ratio)
+    if scale_ratio > 1:
+        to_size = tuple([int(item / scale_ratio) for item in image_up.size])
+        image_up = image_up.resize(to_size, Image.ANTIALIAS)
+        loc_up = [(int(item[0] / scale_ratio), int(item[1] / scale_ratio)) for item in loc_up]
+    else:
+        to_size = tuple([int(item * scale_ratio) for item in image_dw.size])
+        image_dw = image_dw.resize(to_size, Image.ANTIALIAS)
+        loc_dw = [(int(item[0] * scale_ratio), int(item[1] / scale_ratio)) for item in loc_dw]
+
+    image_up.show()
+    image_dw.show()
+
+    print('loc_up, loc_dw = ', loc_up, loc_dw)
 
 
 def main():
     args = get_parser()
-    print(args)
-
     if args['left'] and args['right'] and args['output']:
         concat_horizontal(args['left'], args['right'], args['output'])
 
