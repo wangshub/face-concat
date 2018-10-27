@@ -14,6 +14,8 @@ def get_parser():
     parser.add_argument('-r', '--right', type=str, help='face on the right')
     parser.add_argument('-u', '--upside', type=str, help='face on the upside')
     parser.add_argument('-d', '--downside', type=str, help='face on the downside')
+    parser.add_argument('-o', '--output', type=str, help='save concat file')
+
     args = vars(parser.parse_args())
     return args
 
@@ -99,7 +101,7 @@ def cut_half_face(image_path, retain_side):
     return half_image, location_points
 
 
-def concat_horizontal(image_left_path, image_right_path):
+def concat_horizontal(image_left_path, image_right_path, concat_path):
     image_left, loc_left = cut_half_face(image_left_path, 'left')
     image_right, loc_right = cut_half_face(image_right_path, 'right')
     scale_ratio = distance(loc_left[0], loc_left[1]) / distance(loc_right[0], loc_right[1])
@@ -145,49 +147,12 @@ def concat_horizontal(image_left_path, image_right_path):
     new_im.paste(image_crop_l, (0, 0))
     new_im.paste(image_crop_r, (wl, 0))
 
-    new_im.show()
+    # new_im.show()
+    new_im.save(concat_path)
 
 
-
-
-
-
-def concat_vertical(images):
+def concat_vertical(image_up_path, image_down_path, concat_path):
     pass
-
-
-def test():
-    image = load_image("face/trump-1.jpg")
-
-    face_landmarks_list = get_facial_landmark(image)
-    print("I found {} face(s) in this photograph.".format(len(face_landmarks_list)))
-    num_faces = len(face_landmarks_list)
-
-    if num_faces == 1:
-        # Create a PIL imagedraw object so we can draw on the picture
-        pil_image = Image.fromarray(image)
-        img_size = pil_image.size
-        d = ImageDraw.Draw(pil_image)
-
-        for face_landmarks in face_landmarks_list:
-            for facial_feature in face_landmarks.keys():
-                print("{} : {}".format(facial_feature, face_landmarks[facial_feature]))
-
-        face_landmarks = face_landmarks_list[0]
-        centre_nose_bridge = midpoint(face_landmarks['nose_bridge'])
-
-        d.point(centre_nose_bridge, fill='yellow')
-        pil_image.show()
-
-    else:
-        print('multi face not support or empty face')
-
-    # Show the picture
-    # pil_image.show()
-
-    # area = (400, 400, 800, 800)
-    # cropped_img = pil_image.crop(area)
-    # cropped_img.show()
 
 
 def main():
@@ -195,12 +160,11 @@ def main():
     print(args)
 
     if args['left'] and args['right']:
-        concat_horizontal(args['left'], args['right'])
+        concat_horizontal(args['left'], args['right'], args['output'])
 
     if args['upside'] and args['downside']:
         # TODO
         pass
-
 
 
 if __name__ == '__main__':
