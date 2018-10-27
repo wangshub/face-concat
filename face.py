@@ -31,6 +31,7 @@ def midpoint(coors):
     x, y = int(x / len(coors)), int(y / len(coors))
     return x, y
 
+
 def distance(coor0, coor1):
     d = (coor0[0] - coor1[0])**2 + (coor0[1] - coor1[1])**2
     d = math.sqrt(d)
@@ -67,11 +68,11 @@ def cut_half_face(image_path, retain_side):
     image = load_image(image_path)
     landmark = get_facial_landmark(image)[0]
     nose_bridge_midpoint = midpoint(landmark['nose_bridge'])
-    print(landmark.keys())
-    print('nose_bridge_midpoint =', nose_bridge_midpoint)
+    # print(landmark.keys())
+    print('nose_bridge_midpoint =', nose_bridge_midpoint, image_path)
     pil_image = Image.fromarray(image)
     image_size = pil_image.size
-    print('image_size = ', image_size)
+    print('image_size = ', image_size, image_path)
 
     location_points = None
     half_image = None
@@ -79,18 +80,13 @@ def cut_half_face(image_path, retain_side):
     if retain_side == 'left':
         location_points = [(nose_bridge_midpoint[0], midpoint(landmark['left_eyebrow'])[1]),
                            (nose_bridge_midpoint[0], midpoint(landmark['top_lip'])[1])]
-        d = ImageDraw.Draw(pil_image)
-        d.point(location_points, fill='yellow')
-        # pil_image.show()
         crop_area = (0, 0) + (nose_bridge_midpoint[0], image_size[1])
         half_image = pil_image.crop(crop_area)
-        # half_image.show()
     elif retain_side == 'right':
         location_points = [(0, midpoint(landmark['left_eyebrow'])[1]),
                            (0, midpoint(landmark['top_lip'])[1])]
         crop_area = (nose_bridge_midpoint[0], 0) + image_size
         half_image = pil_image.crop(crop_area)
-        # half_image.show()
     elif retain_side == 'upside':
         # TODO
         pass
@@ -107,7 +103,44 @@ def concat_horizontal(image_left_path, image_right_path):
     image_left, loc_left = cut_half_face(image_left_path, 'left')
     image_right, loc_right = cut_half_face(image_right_path, 'right')
     scale_ratio = distance(loc_left[0], loc_left[1]) / distance(loc_right[0], loc_right[1])
-    print(scale_ratio)
+
+    print('scale_ratio = ', scale_ratio)
+
+    if scale_ratio > 1:
+        to_size = tuple([int(item / scale_ratio) for item in image_left.size])
+        image_left = image_left.resize(to_size, Image.ANTIALIAS)
+        loc_left = [(int(item[0] / scale_ratio), int(item[1] / scale_ratio)) for item in loc_left]
+    else:
+        to_size = tuple([int(item * scale_ratio) for item in image_right.size])
+        image_right = image_right.resize(to_size, Image.ANTIALIAS)
+        loc_right = [(int(item[0] * scale_ratio), int(item[1] * scale_ratio)) for item in loc_right]
+    # image_left.show()
+    # image_right.show()
+    print('loc_left, loc_right = ', loc_left, loc_right)
+    print('image_left.size, image_right.size = ', image_left.size, image_right.size)
+    w_l, h_l = image_left.size
+    w_r, h_r = image_right.size
+
+    # area cut
+    hl, hr = loc_left[0][1], loc_right[0][1]
+    y_l_0, y_r_0 = (hl, hr - hl) if hl < hr else (hl - hr, hr)
+
+    hl, hr = (h_l - loc_left[1][1]), (h_r - loc_right[1][1])
+    delta = hl - hr
+    y_l_1, y_r_1 = (loc_left[1][1], loc_right[1][1] + delta) if delta < 0 else (loc_left[1][1] - delta, loc_right[1][1])
+
+    crop_area_l = (0, y_l_0, w_l, y_l_1)
+    crop_area_r = (0, y_r_0, w_r, y_r_1)
+
+    print(crop_area_l, crop_area_r)
+
+    crop_image_l = image_left.crop(crop_area_l)
+    crop_image_r = image_right.crop(crop_area_r)
+
+    # crop_image_l.show()
+    # crop_image_r.show()
+
+
 
 
 def concat_vertical(images):
