@@ -116,30 +116,33 @@ def concat_horizontal(image_left_path, image_right_path):
         loc_right = [(int(item[0] * scale_ratio), int(item[1] * scale_ratio)) for item in loc_right]
     # image_left.show()
     # image_right.show()
-    print('loc_left, loc_right = ', loc_left, loc_right)
+    print('loc_left, loc_right = ', loc_left, '<--->', loc_right)
     print('image_left.size, image_right.size = ', image_left.size, image_right.size)
-    w_l, h_l = image_left.size
-    w_r, h_r = image_right.size
 
-    # area cut
-    hl, hr = loc_left[0][1], loc_right[0][1]
-    y_l_0, y_r_0 = (hl, hr - hl) if hl < hr else (hl - hr, hr)
+    print('-'*50)
 
-    hl, hr = (h_l - loc_left[1][1]), (h_r - loc_right[1][1])
-    delta = hl - hr
-    y_l_1, y_r_1 = (loc_left[1][1], loc_right[1][1] + delta) if delta < 0 else (loc_left[1][1] - delta, loc_right[1][1])
+    wl, hl = image_left.size
+    wr, hr = image_right.size
 
-    crop_area_l = (0, y_l_0, w_l, y_l_1)
-    crop_area_r = (0, y_r_0, w_r, y_r_1)
+    delta = loc_left[0][1] - loc_right[0][1]
+    yl_0, yr_0 = (delta, 0) if delta > 0 else (0, delta)
 
-    print(crop_area_l, crop_area_r)
+    delta = (hl - loc_left[1][1]) - (hr - loc_right[1][1])
+    yl_1, yr_1 = (hl - delta, hr) if delta > 0 else (hl, hr + delta)
 
-    crop_image_l = image_left.crop(crop_area_l)
-    crop_image_r = image_right.crop(crop_area_r)
+    print('cut y label ')
+    print(yl_0, yr_0)
+    print(yl_1, yr_1)
 
-    # crop_image_l.show()
-    # crop_image_r.show()
+    area_l = (0, yl_0, wl, yl_1)
+    area_r = (0, yr_0, wr, yr_1)
+    image_crop_l = image_left.crop(area_l)
+    image_crop_r = image_right.crop(area_r)
 
+    image_crop_l.show()
+    image_crop_r.show()
+
+    print(image_crop_l.size, '=====', image_crop_r.size)
 
 
 
