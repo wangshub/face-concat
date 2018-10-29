@@ -15,7 +15,7 @@ def get_parser():
     parser.add_argument('-r', '--right', type=str, help='face on the right')
     parser.add_argument('-u', '--upside', type=str, help='face on the upside')
     parser.add_argument('-d', '--downside', type=str, help='face on the downside')
-    parser.add_argument('-o', '--output', type=str, help='save concat file')
+    parser.add_argument('-o', '--output', type=str, help='save concat image')
 
     args = vars(parser.parse_args())
     return args
