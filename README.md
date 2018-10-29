@@ -1,5 +1,7 @@
 # 人脸拼接小工具
 
+为了向"大领导"可视化什么是夫妻相，利用 [face_recognition](https://github.com/ageitgey/face_recognition#installation-options) 写了个人脸拼接小工具
+
 ## 特性
 
 ### 左右拼接
@@ -15,9 +17,11 @@
 
 ## 依赖
 
-- 安装 [face_recognition](https://github.com/ageitgey/face_recognition#installation-options)
+- [dlib](https://github.com/davisking/dlib.git)
 
-- `pip3 install -r requirements.txt`
+- [face_recognition](https://github.com/ageitgey/face_recognition#installation-options)
+
+    -  `pip3 install -r requirements.txt`
 
 ## 使用
 
@@ -29,7 +33,7 @@
 
     `python3 face.py -l upside.jpg -r downside.jpg -o output.jpg `
 
-- `python3 face.py -h`
+- 详情 `python3 face.py -h`
 
     ```text
     usage: face.py [-h] [-l LEFT] [-r RIGHT] [-u UPSIDE] [-d DOWNSIDE] [-o OUTPUT]
