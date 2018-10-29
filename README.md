@@ -4,12 +4,7 @@
 
 ### 左右拼接
 <center>
-<figure class="third">
-    <!-- <img src="./output/1.jpg"  width="200"> -->
-    <img src="./output/2.jpg"  width="200">
-    <img src="./output/3.jpg"  width="200">
-    <img src="./output/4.jpg"  width="200">
-</figure>
+    <img src="./output/joint.png">
 </center>
 
 ### 上下拼接
